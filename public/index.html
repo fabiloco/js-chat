@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Socket.io</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+    <div class="userView" id="userView">user</div>
+    
+    <div>
+        <ul id="messages"></ul>
+        <p id="actions"></p>
+    </div>
+
+    <form id="form" action="">
+        <input id="input" autocomplete="off" placeholder="type here" />
+        <button id="send" >Send</button>
+    </form>
+
+    <div id="userModal" class="userModal">
+        <div class="modal">
+            <h2>Welcome!</h2>
+            <p>Please, enter your user name to start chatting:</p>
+            <form id="formUser" action="">
+                <input id="inputUser" placeholder="user" />
+                <button id="sendUser">OK</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="main.js" type="module"></script>
+</body>
+</html>
