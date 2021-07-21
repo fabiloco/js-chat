@@ -11,9 +11,15 @@
 
     <div class="userView" id="userView">user</div>
     
-    <div>
+    <div class="messages-container">
         <ul id="messages"></ul>
         <p id="actions"></p>
+    </div>
+
+    <div class="users-container">
+        <h2 class="users-title">Users</h2>
+        <hr/>
+        <ul id="usersList" class="usersList"></ul>
     </div>
 
     <form id="form" action="">
@@ -29,6 +35,7 @@
                 <input id="inputUser" placeholder="user" />
                 <button id="sendUser">OK</button>
             </form>
+            <p class="modal-warning" id="modal-warning">That user is already on the chat</p>
         </div>
     </div>
     

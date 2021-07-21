@@ -1,7 +1,7 @@
-import showModal from './modal.js';
-
+// Importamos la libreria socket io del lado del cliente
 const socket = io();
 
+// seleccionamos los elementos de la interfaz para poder manipularlos
 const messages = document.getElementById('messages');
 
 const form = document.getElementById('form');
@@ -11,12 +11,28 @@ const userView = document.getElementById('userView');
 
 const actions = document.getElementById('actions');
 
+const modal = document.getElementById('userModal');
+const inputUser = document.getElementById('inputUser');
+const modalWarning = document.getElementById('modal-warning');
+
+const usersList = document.getElementById('usersList');
+
+
+// Iniciamos la variable del usuario
 let user = null;
 
+
+// Evento is typing
 input.addEventListener('keypress', e => {
     socket.emit('chat:typing', user);
 });
 
+socket.on('chat:typing', user => {
+    actions.innerHTML = `<em>${user} is typing something...</em>`
+});
+
+
+// Evento message
 form.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -25,17 +41,10 @@ form.addEventListener('submit', (e) => {
         content: input.value,
     }
 
-    console.log(message);
-
     if(input.value) {
         socket.emit('chat:message', message);
         input.value = '';
     }
-});
-
-socket.on('chat:typing', user => {
-    console.log(user + ' is typing..');
-    actions.innerHTML = `<em>${user} is typing something...</em>`
 });
 
 socket.on('chat:message', msg => {
@@ -46,12 +55,35 @@ socket.on('chat:message', msg => {
 });
 
 
-
+// Evento new user connected
 formUser.addEventListener('submit', e => {
-    localStorage.setItem('user', inputUser.value);
+    e.preventDefault();
+    user = inputUser.value.trim();
+
+    socket.emit('user:connect', user, data => {
+        if(data) {
+            modal.style.display = 'none';
+            modalWarning.style.display = 'none';
+            usersList.innerHTML='';
+
+            userView.innerHTML = `You're logged as <strong>${user}</strong>`;
+        } else {
+            modal.style.display = 'flex';
+            modalWarning.style.display = 'block';
+        }
+    });
 });
 
-window.addEventListener('DOMContentLoaded', (e) => {
-    user = showModal(user);
-    userView.innerHTML = `<div> You're logged as: <strong>${user}</strong> </div>`;
+document.addEventListener('DOMContentLoaded', e => {
+    modal.style.display = 'flex';
+});
+
+// Evento actualizar la lista de usuarios
+socket.on('user:update', (users) => {
+    usersList.innerHTML='';
+    users.forEach(user => {
+        const li = document.createElement('li');
+        li.textContent = user;
+        usersList.appendChild(li);
+    });
 });
