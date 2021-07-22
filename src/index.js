@@ -4,6 +4,17 @@ const app = express();
 
 const socketIO = require('socket.io');
 
+const mongoose = require('mongoose');
+
+const Chat = require('./models/Chat.js');
+
+// db connection
+mongoose.connect('mongodb://localhost/chat-database', {useNewUrlParser: true})
+    .then(db => {
+        console.log('db is connected');
+    })
+    .catch( err => console.log(err));
+
 // settings
 app.set('port', process.env.PORT || 3000);
 
@@ -22,13 +33,47 @@ const server = app.listen(app.get('port'), (err) => {
 const io = socketIO(server);
 
 
-let users = ['fabi'];
+let users = {};
 
 // websockets
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
 
-    socket.on('chat:message', (msg) => {
-        io.emit('chat:message', msg);
+    let messages = await Chat.find({});
+    socket.emit('chat:oldmsgs', messages);
+
+    socket.on('chat:message', async (msg) => {
+
+        let message = msg.content.trim();
+
+        if(message.substr(0, 3) === '/w ') {
+            message = message.substr(3);
+            
+            const index = message.indexOf(' ');
+            if(index !== -1) {
+                var name = message.substring(0, index);
+                message = message.substring(index + 1);
+
+                if(name in users) {
+                    users[name].emit('whisper', {
+                        content: message,
+                        user: socket.user,
+                    });
+                } else {
+                    console.log('no se encontro el usuario');
+                }
+            } else {
+                console.log('no se encontro mensaje');
+            }
+        } else {
+            let newMessage = new Chat({
+                user: socket.user,
+                message: msg.content,
+            });
+
+            await newMessage.save();
+
+            io.emit('chat:message', msg);
+        }
     });
 
     socket.on('chat:typing', (msg) => {
@@ -36,31 +81,29 @@ io.on('connection', (socket) => {
     });
 
     socket.on('user:connect', (user, cb) => {
-        if(users.includes(user)) {
+        if(user in users) {
             cb(false);
             console.log(user,'user already exist on the chat');
         } else {
             cb(true);
-            users.push(user);
             console.log(user,'user connected');
             socket.user = user;
+            users[socket.user] = socket;
             updateUsers();
         }
     });
 
     socket.on('disconnect', () => {
         console.log(socket.user, 'disconnected');
-        if(!users.includes(socket.user))
+        if(!socket.user)
             return;
         
-        let index = users.indexOf(socket.user);
-        users.splice(index, 1);
+        delete users[socket.user];
 
         updateUsers();
     });
 
     const updateUsers = () => {
-        io.emit('user:update', users);
+        io.emit('user:update', Object.keys(users));
     }
 });
-

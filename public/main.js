@@ -54,6 +54,15 @@ socket.on('chat:message', msg => {
     messages.appendChild(item);
 });
 
+// Evento whisper
+socket.on('whisper', msg => {
+    console.log(msg);
+    actions.innerHTML = '';
+    let item = document.createElement('li');
+    item.innerHTML = `<div class="whisper"><i><strong>${msg.user}</strong>: ${msg.content}</i></div>`;
+    messages.appendChild(item);
+});
+
 
 // Evento new user connected
 formUser.addEventListener('submit', e => {
@@ -80,10 +89,21 @@ document.addEventListener('DOMContentLoaded', e => {
 
 // Evento actualizar la lista de usuarios
 socket.on('user:update', (users) => {
+    console.log("hola", users);
     usersList.innerHTML='';
     users.forEach(user => {
         const li = document.createElement('li');
         li.textContent = user;
         usersList.appendChild(li);
     });
+});
+
+// Cargando mensajes viejos
+socket.on('chat:oldmsgs', data => {
+    console.log(data);
+    for(let i = 0 ; i < data.length; i++) {
+        let item = document.createElement('li');
+        item.innerHTML = `<div><strong>${data[i].user}</strong>: ${data[i].message}</div>`;
+        messages.appendChild(item);
+    }
 });

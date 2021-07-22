@@ -55,6 +55,10 @@ body {
     background: #efefef;
 }
 
+.whisper {
+    color: rgba(1, 1, 1, 0.5);
+}
+
 .userModal {
     position: fixed;
     top:0;
