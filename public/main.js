@@ -36,9 +36,13 @@ socket.on('chat:typing', user => {
 form.addEventListener('submit', (e) => {
     e.preventDefault();
 
+    let msg = input.value.trim();
+
+    if(msg === '') return;
+
     let message = {
         user: user,
-        content: input.value,
+        content: msg,
     }
 
     if(input.value) {
@@ -54,9 +58,14 @@ socket.on('chat:message', msg => {
     messages.appendChild(item);
 });
 
+// Evento error en el whisper
+socket.on('chat:error', err => {
+    if(!err) return;
+    actions.innerHTML = err;
+});
+
 // Evento whisper
 socket.on('whisper', msg => {
-    console.log(msg);
     actions.innerHTML = '';
     let item = document.createElement('li');
     item.innerHTML = `<div class="whisper"><i><strong>${msg.user}</strong>: ${msg.content}</i></div>`;
@@ -69,6 +78,13 @@ formUser.addEventListener('submit', e => {
     e.preventDefault();
     user = inputUser.value.trim();
 
+    if(user === '' || user.length < 3) {
+        modal.style.display = 'flex';
+        modalWarning.style.display = 'block';
+        modalWarning.textContent = 'Username must have at least 3 characters';
+        return;
+    }
+
     socket.emit('user:connect', user, data => {
         if(data) {
             modal.style.display = 'none';
@@ -79,6 +95,7 @@ formUser.addEventListener('submit', e => {
         } else {
             modal.style.display = 'flex';
             modalWarning.style.display = 'block';
+            modalWarning.textContent = 'That user is already on the chat';
         }
     });
 });
@@ -89,7 +106,6 @@ document.addEventListener('DOMContentLoaded', e => {
 
 // Evento actualizar la lista de usuarios
 socket.on('user:update', (users) => {
-    console.log("hola", users);
     usersList.innerHTML='';
     users.forEach(user => {
         const li = document.createElement('li');
@@ -100,7 +116,6 @@ socket.on('user:update', (users) => {
 
 // Cargando mensajes viejos
 socket.on('chat:oldmsgs', data => {
-    console.log(data);
     for(let i = 0 ; i < data.length; i++) {
         let item = document.createElement('li');
         item.innerHTML = `<div><strong>${data[i].user}</strong>: ${data[i].message}</div>`;

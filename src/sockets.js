@@ -9,8 +9,8 @@ module.exports = io => {
         let messages = await Chat.find({});
         socket.emit('chat:oldmsgs', messages);
 
-        socket.on('chat:message', async (msg) => {
-
+        socket.on('chat:message', async msg => {
+            err = undefined;
             let message = msg.content.trim();
 
             if(message.substr(0, 3) === '/w ') {
@@ -27,10 +27,12 @@ module.exports = io => {
                             user: socket.user,
                         });
                     } else {
-                        console.log('no se encontro el usuario');
+                        err = 'Error! type a valid user';
+                        io.emit('chat:error', err);
                     }
                 } else {
-                    console.log('no se encontro mensaje');
+                    err = 'Error! type a valid message';
+                    io.emit('chat:error', err);
                 }
             } else {
                 let newMessage = new Chat({
